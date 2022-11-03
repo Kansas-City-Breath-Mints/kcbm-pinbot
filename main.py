@@ -48,7 +48,14 @@ pins_channel = 1037185916441214987
 # TODO
 # add any black listed channel IDs as a list separated by a comma (,)
 # a good idea is to add admin channels to this
-blacklisted_channels = []
+blacklisted_channels = [
+    1037184519066894408,
+    1037184567381082203,
+    1037502880615243837,
+    1037524439044198520,
+    1037185265359388725,
+    1037185636869885963
+]
 
 # discord embed colors
 EMBED_COLORS = [
