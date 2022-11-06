@@ -119,13 +119,10 @@ class Message(commands.Converter):
 #        Passel so that all pinned messages get sent to the pins archive channel.
 
 # TODO change command here if you want to use another command, replace p. with anything you want inside the single ('') quotes
-intents = discord.Intent.default()
-intents.message_content = True
 
 client = commands.Bot(command_prefix='p.',
                       status='Online',
-                      case_insensitive=True,
-                      intents=intents)
+                      case_insensitive=True)
 client.remove_command("help")
 
 # TODO change mode to 1 or 2 here
