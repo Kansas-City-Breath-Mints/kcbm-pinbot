@@ -120,7 +120,8 @@ class Message(commands.Converter):
 
 # TODO change command here if you want to use another command, replace p. with anything you want inside the single ('') quotes
 intents = discord.Intents.default()
-intents
+intents.message_content = True
+
 client = commands.Bot(command_prefix='p.',
                       status='Online',
                       case_insensitive=True,
