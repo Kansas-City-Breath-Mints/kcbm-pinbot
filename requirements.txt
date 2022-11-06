@@ -1,5 +1,5 @@
-dblpy==0.3.4
-discord.py==1.4
+dblpy
+discord.py
 dj-database-url==0.2.1
 Django==1.4
 dnspython==1.16.0
