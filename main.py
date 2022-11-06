@@ -10,6 +10,91 @@ from disnake.ext import commands
 
 import re
 
+class Message(commands.Converter):
+    def __init__(self, insert=False, local_only=False) -> None:
+        self.insert = insert
+        self.local_only = local_only
+
+    async def convert(self, ctx, argument):
+        async with ctx.typing():
+            message_id, channel_id = self.extract_ids(ctx, argument)
+            logged, message, = await self.fetch_messages(ctx, message_id, channel_id)
+            if message is None:
+                raise commands.BadArgument('unknown_message')
+            if logged is not None and logged.content != message.content:
+                logged.content = message.content
+                await logged.save()
+        if message.channel != ctx.channel and self.local_only:
+            raise commands.BadArgument('message_wrong_channel')
+        return message
+
+    @staticmethod
+    def extract_ids(ctx, argument):
+        message_id = None
+        channel_id = None
+        if "-" in argument:
+            parts = argument.split("-")
+            if len(parts) == 2:
+                try:
+                    channel_id = int(parts[0].strip(" "))
+                    message_id = int(parts[1].strip(" "))
+                except ValueError:
+                    pass
+            else:
+                parts = argument.split(" ")
+                if len(parts) == 2:
+                    try:
+                        channel_id = int(parts[0].strip(" "))
+                        message_id = int(parts[1].strip(" "))
+                    except ValueError:
+                        pass
+        else:
+            result = JUMP_LINK_MATCHER.match(argument)
+            if result is not None:
+                channel_id = int(result.group(1))
+                message_id = int(result.group(2))
+            else:
+                try:
+                    message_id = int(argument)
+                except ValueError:
+                    pass
+        if message_id is None:
+            raise commands.BadArgument('message_invalid_format')
+        return message_id, channel_id
+
+    @staticmethod
+    async def fetch_messages(ctx, message_id, channel_id):
+        message = None
+        logged_message = None
+        async with ctx.typing():
+            if logged_message is None:
+                if channel_id is None:
+                    for channel in ctx.guild.text_channels:
+                        try:
+                            permissions = channel.permissions_for(channel.guild.me)
+                            if permissions.read_messages and permissions.read_message_history:
+                                message = await channel.fetch_message(message_id)
+                                channel_id = channel.id
+                                break
+                        except (disnake.NotFound, disnake.Forbidden):
+                            pass
+                    if message is None:
+                        raise commands.BadArgument('message_missing_channel')
+            elif channel_id is None:
+                channel_id = logged_message.channel
+            channel = ctx.bot.get_channel(channel_id)
+            if channel is None:
+                raise commands.BadArgument('unknown_channel')
+            elif message is None:
+                try:
+                    permissions = channel.permissions_for(channel.guild.me)
+                    if permissions.read_messages and permissions.read_message_history:
+                        message = await channel.fetch_message(message_id)
+                except (disnake.NotFound, disnake.Forbidden):
+                    raise commands.BadArgument('unknown_message')
+
+        return logged_message, message
+
 # Author: hyppytyynytyydytys#1010
 # Created: 26 MAY 2020
 # Last updated: 17 JULY 2022
@@ -295,90 +380,5 @@ async def send_to(destination, emoji, message, embed=None, attachment=None, **kw
     return await destination.send(f"{emoji} {message}", embed=embed, allowed_mentions=disnake.AllowedMentions(everyone=False, users=True, roles=False), file=attachment)
 
 JUMP_LINK_MATCHER = re.compile(r"https://(?:canary|ptb)?\.?discord(?:app)?.com/channels/\d{15,20}/(\d{15,20})/(\d{15,20})")
-
-class Message(commands.Converter):
-    def __init__(self, insert=False, local_only=False) -> None:
-        self.insert = insert
-        self.local_only = local_only
-
-    async def convert(self, ctx, argument):
-        async with ctx.typing():
-            message_id, channel_id = self.extract_ids(ctx, argument)
-            logged, message, = await self.fetch_messages(ctx, message_id, channel_id)
-            if message is None:
-                raise commands.BadArgument('unknown_message')
-            if logged is not None and logged.content != message.content:
-                logged.content = message.content
-                await logged.save()
-        if message.channel != ctx.channel and self.local_only:
-            raise commands.BadArgument('message_wrong_channel')
-        return message
-
-    @staticmethod
-    def extract_ids(ctx, argument):
-        message_id = None
-        channel_id = None
-        if "-" in argument:
-            parts = argument.split("-")
-            if len(parts) == 2:
-                try:
-                    channel_id = int(parts[0].strip(" "))
-                    message_id = int(parts[1].strip(" "))
-                except ValueError:
-                    pass
-            else:
-                parts = argument.split(" ")
-                if len(parts) == 2:
-                    try:
-                        channel_id = int(parts[0].strip(" "))
-                        message_id = int(parts[1].strip(" "))
-                    except ValueError:
-                        pass
-        else:
-            result = JUMP_LINK_MATCHER.match(argument)
-            if result is not None:
-                channel_id = int(result.group(1))
-                message_id = int(result.group(2))
-            else:
-                try:
-                    message_id = int(argument)
-                except ValueError:
-                    pass
-        if message_id is None:
-            raise commands.BadArgument('message_invalid_format')
-        return message_id, channel_id
-
-    @staticmethod
-    async def fetch_messages(ctx, message_id, channel_id):
-        message = None
-        logged_message = None
-        async with ctx.typing():
-            if logged_message is None:
-                if channel_id is None:
-                    for channel in ctx.guild.text_channels:
-                        try:
-                            permissions = channel.permissions_for(channel.guild.me)
-                            if permissions.read_messages and permissions.read_message_history:
-                                message = await channel.fetch_message(message_id)
-                                channel_id = channel.id
-                                break
-                        except (disnake.NotFound, disnake.Forbidden):
-                            pass
-                    if message is None:
-                        raise commands.BadArgument('message_missing_channel')
-            elif channel_id is None:
-                channel_id = logged_message.channel
-            channel = ctx.bot.get_channel(channel_id)
-            if channel is None:
-                raise commands.BadArgument('unknown_channel')
-            elif message is None:
-                try:
-                    permissions = channel.permissions_for(channel.guild.me)
-                    if permissions.read_messages and permissions.read_message_history:
-                        message = await channel.fetch_message(message_id)
-                except (disnake.NotFound, disnake.Forbidden):
-                    raise commands.BadArgument('unknown_message')
-
-        return logged_message, message
 
 client.run(os.environ.get('TOKEN'))
