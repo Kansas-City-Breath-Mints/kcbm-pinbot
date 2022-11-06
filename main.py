@@ -3,7 +3,6 @@ from random import randrange
 # TODO if using Github diff deployment on HeroKu uncomment the next line
 import os
 import discord
-from discord.ext import commands
 
 import disnake
 from disnake.ext import commands
@@ -119,7 +118,7 @@ class Message(commands.Converter):
 #        Passel so that all pinned messages get sent to the pins archive channel.
 
 # TODO change command here if you want to use another command, replace p. with anything you want inside the single ('') quotes
-intents = discord.Intent.default()
+intents = discord.Intents.default()
 print(discord.__version__)
 print(intents)
 print(type(intents))
