@@ -322,7 +322,7 @@ async def quote(ctx: commands.Context, *, message: Message):
         permissions = message.channel.permissions_for(ctx.message.author)
         if permissions.read_message_history and permissions.read_message_history:
             attachment = None
-            attachments = await message.attachments
+            attachments = message.attachments
             if len(attachments) == 1:
                 attachment = attachments[0]
             embed = disnake.Embed(colour=disnake.Color(0xd5fff),
