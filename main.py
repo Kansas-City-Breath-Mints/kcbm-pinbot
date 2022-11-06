@@ -5,6 +5,11 @@ import os
 import discord
 from discord.ext import commands
 
+import disnake
+from disnake.ext import commands
+
+import re
+
 # Author: hyppytyynytyydytys#1010
 # Created: 26 MAY 2020
 # Last updated: 17 JULY 2022
@@ -216,9 +221,164 @@ async def on_guild_channel_pins_update(channel, last_pin):
     except:
         print("unpinned a message, not useful for bot so does nothing")
 
+@commands.command()
+@commands.guild_only()
+@commands.bot_has_permissions(embed_links=True)
+async def quote(self, ctx: commands.Context, *, message: Message):
+    """quote_help"""
+    await ctx.trigger_typing()
+    if ctx.message.author is None:
+        await send_to(ctx, '🚫', 'quote_not_visible_to_user')
+    else:
+        permissions = message.channel.permissions_for(ctx.message.author)
+        if permissions.read_message_history and permissions.read_message_history:
+            attachment = None
+            attachments = await message.attachments
+            if len(attachments) == 1:
+                attachment = attachments[0]
+            embed = disnake.Embed(colour=disnake.Color(0xd5fff),
+                                    timestamp=message.created_at)
+            if message.content is None or message.content == "":
+                if attachment is not None:
+                    url = f"https://media.discordapp.net/attachments/{message.channel.id}/{attachment.id}/{attachment.name}"
+                    if attachment.isimage:
+                        embed.set_image(url=url)
+                    else:
+                        embed.add_field(name="attachment_link", value=url)
+            else:
+                description = message.content
+                embed = disnake.Embed(colour=disnake.Color(0xd5fff), description=description,
+                                        timestamp=message.created_at)
+                embed.add_field(name="​",
+                                value=f"[Jump to message]({message.jump_url})")
+                if attachment is not None:
+                    url = f"https://media.discordapp.net/attachments/{message.channel.id}/{attachment.id}/{attachment.name}"
+                    if attachment.isimage:
+                        embed.set_image(url=url)
+                    else:
+                        embed.add_field(name="attachment_link", value=url)
+            user = message.author
+            embed.set_author(name=user.name, icon_url=user.display_avatar.url)
+            embed.set_footer(
+                text="quote_footer",
+                channel=message.channel.name,
+                user=clean_user(ctx.author),
+                message_id=message.id
+            )
+            await ctx.send(embed=embed)
+            if ctx.channel.permissions_for(ctx.me).manage_messages:
+                await ctx.message.delete()
 
-# TODO Replace TOKEN with the token from discord developer portal 
-#client.run('TOKEN')
+        else:
+            await send_to(ctx, '🚫', 'quote_not_visible_to_user')
 
-# TODO If using GitHub diff deployment on HeroKu comment out the above line with '#' and remove '#' from the line below to uncomment it. 
+def replace_lookalikes(text):
+    replacements = {
+        "`": "ˋ"
+    }
+    for k, v in replacements.items():
+        text = text.replace(k, v)
+    return text
+
+def escape_markdown(text):
+    text = str(text)
+    for c in ["\\", "*", "_", "~", "|", "{", ">"]:
+        text = text.replace(c, f"\\{c}")
+    return text.replace("@", "@\u200b")
+
+def clean_user(user):
+    if user is None:
+        return "UNKNOWN USER"
+    return f"{escape_markdown(replace_lookalikes(user.name))}#{user.discriminator}"
+
+async def send_to(destination, emoji, message, embed=None, attachment=None, **kwargs):
+    return await destination.send(f"{emoji} {message}", embed=embed, allowed_mentions=disnake.AllowedMentions(everyone=False, users=True, roles=False), file=attachment)
+
+JUMP_LINK_MATCHER = re.compile(r"https://(?:canary|ptb)?\.?discord(?:app)?.com/channels/\d{15,20}/(\d{15,20})/(\d{15,20})")
+
+class Message(commands.Converter):
+    def __init__(self, insert=False, local_only=False) -> None:
+        self.insert = insert
+        self.local_only = local_only
+
+    async def convert(self, ctx, argument):
+        async with ctx.typing():
+            message_id, channel_id = self.extract_ids(ctx, argument)
+            logged, message, = await self.fetch_messages(ctx, message_id, channel_id)
+            if message is None:
+                raise commands.BadArgument('unknown_message')
+            if logged is not None and logged.content != message.content:
+                logged.content = message.content
+                await logged.save()
+        if message.channel != ctx.channel and self.local_only:
+            raise commands.BadArgument('message_wrong_channel')
+        return message
+
+    @staticmethod
+    def extract_ids(ctx, argument):
+        message_id = None
+        channel_id = None
+        if "-" in argument:
+            parts = argument.split("-")
+            if len(parts) == 2:
+                try:
+                    channel_id = int(parts[0].strip(" "))
+                    message_id = int(parts[1].strip(" "))
+                except ValueError:
+                    pass
+            else:
+                parts = argument.split(" ")
+                if len(parts) == 2:
+                    try:
+                        channel_id = int(parts[0].strip(" "))
+                        message_id = int(parts[1].strip(" "))
+                    except ValueError:
+                        pass
+        else:
+            result = JUMP_LINK_MATCHER.match(argument)
+            if result is not None:
+                channel_id = int(result.group(1))
+                message_id = int(result.group(2))
+            else:
+                try:
+                    message_id = int(argument)
+                except ValueError:
+                    pass
+        if message_id is None:
+            raise commands.BadArgument('message_invalid_format')
+        return message_id, channel_id
+
+    @staticmethod
+    async def fetch_messages(ctx, message_id, channel_id):
+        message = None
+        logged_message = None
+        async with ctx.typing():
+            if logged_message is None:
+                if channel_id is None:
+                    for channel in ctx.guild.text_channels:
+                        try:
+                            permissions = channel.permissions_for(channel.guild.me)
+                            if permissions.read_messages and permissions.read_message_history:
+                                message = await channel.fetch_message(message_id)
+                                channel_id = channel.id
+                                break
+                        except (disnake.NotFound, disnake.Forbidden):
+                            pass
+                    if message is None:
+                        raise commands.BadArgument('message_missing_channel')
+            elif channel_id is None:
+                channel_id = logged_message.channel
+            channel = ctx.bot.get_channel(channel_id)
+            if channel is None:
+                raise commands.BadArgument('unknown_channel')
+            elif message is None:
+                try:
+                    permissions = channel.permissions_for(channel.guild.me)
+                    if permissions.read_messages and permissions.read_message_history:
+                        message = await channel.fetch_message(message_id)
+                except (disnake.NotFound, disnake.Forbidden):
+                    raise commands.BadArgument('unknown_message')
+
+        return logged_message, message
+
 client.run(os.environ.get('TOKEN'))
