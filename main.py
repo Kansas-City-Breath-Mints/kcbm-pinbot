@@ -310,10 +310,10 @@ async def on_guild_channel_pins_update(channel, last_pin):
     except:
         print("unpinned a message, not useful for bot so does nothing")
 
-@commands.command()
+@client.command(name='quote')
 @commands.guild_only()
 @commands.bot_has_permissions(embed_links=True)
-async def quote(self, ctx: commands.Context, *, message: Message):
+async def quote(ctx: commands.Context, *, message: Message):
     """quote_help"""
     await ctx.trigger_typing()
     if ctx.message.author is None:
