@@ -330,7 +330,7 @@ async def quote(ctx: commands.Context, *, message: Message):
             if message.content is None or message.content == "":
                 if attachment is not None:
                     url = attachment.url
-                    if attachment.isimage:
+                    if attachment.content_type != None and "image" in attachment.content_type:
                         embed.set_image(url=url)
                     else:
                         embed.add_field(name="attachment_link", value=url)
@@ -342,7 +342,7 @@ async def quote(ctx: commands.Context, *, message: Message):
                                 value=f"[Jump to message]({message.jump_url})")
                 if attachment is not None:
                     url = attachment.url
-                    if attachment.isimage:
+                    if attachment.content_type != None and "image" in attachment.content_type:
                         embed.set_image(url=url)
                     else:
                         embed.add_field(name="attachment_link", value=url)
