@@ -349,10 +349,7 @@ async def quote(ctx: commands.Context, *, message: Message):
             user = message.author
             embed.set_author(name=user.name, icon_url=user.display_avatar.url)
             embed.set_footer(
-                text="quote_footer",
-                channel=message.channel.name,
-                user=clean_user(ctx.author),
-                message_id=message.id
+                text=f"Sent in {message.channel.name} | Quote requested by {clean_user(ctx.author)} | {message.id}"
             )
             await ctx.send(embed=embed)
             if ctx.channel.permissions_for(ctx.me).manage_messages:
