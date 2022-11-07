@@ -329,7 +329,7 @@ async def quote(ctx: commands.Context, *, message: Message):
                                     timestamp=message.created_at)
             if message.content is None or message.content == "":
                 if attachment is not None:
-                    url = f"https://media.discordapp.net/attachments/{message.channel.id}/{attachment.id}/{attachment.name}"
+                    url = attachment.url
                     if attachment.isimage:
                         embed.set_image(url=url)
                     else:
@@ -341,7 +341,7 @@ async def quote(ctx: commands.Context, *, message: Message):
                 embed.add_field(name="​",
                                 value=f"[Jump to message]({message.jump_url})")
                 if attachment is not None:
-                    url = f"https://media.discordapp.net/attachments/{message.channel.id}/{attachment.id}/{attachment.name}"
+                    url = attachment.url
                     if attachment.isimage:
                         embed.set_image(url=url)
                     else:
