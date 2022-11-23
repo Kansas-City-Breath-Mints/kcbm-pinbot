@@ -382,4 +382,9 @@ async def send_to(destination, emoji, message, embed=None, attachment=None, **kw
 
 JUMP_LINK_MATCHER = re.compile(r"https://(?:canary|ptb)?\.?discord(?:app)?.com/channels/\d{15,20}/(\d{15,20})/(\d{15,20})")
 
+@client.event
+async def on_message(message):
+    if 'shrimp check' in message.content:
+        await message.add_reaction("🦐")
+
 client.run(os.environ.get('TOKEN'))
