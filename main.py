@@ -386,12 +386,9 @@ JUMP_LINK_MATCHER = re.compile(r"https://(?:canary|ptb)?\.?discord(?:app)?.com/c
 
 @client.event
 async def on_message(message):
-    print(message.channel.id)
-    print(message.channel.id == 1037184519066894408)
-    print(re.search("\btictactic\b", message.content))
     if 'shrimp check' in message.content:
         await message.add_reaction("🦐")
-    if message.channel.id == 1037184519066894408 and re.search("\btictactic\b", message.content):
+    if message.channel.id == 1037184519066894408 and re.search(r"\btictactic\b", message.content):
         await message.add_reaction(get(client.get_all_emojis(), name='threethumbsup'))
         await message.add_reaction("📊")
         await message.add_reaction("🎈")
