@@ -389,7 +389,7 @@ async def on_message(message):
     if 'shrimp check' in message.content:
         await message.add_reaction("🦐")
     if message.channel.id == 1037184519066894408 and re.search(r"\btictactic\b", message.content):
-        await message.add_reaction(get(client.emojis(), name='threethumbsup'))
+        await message.add_reaction(get(client.emojis, name='threethumbsup'))
         await message.add_reaction("📊")
         await message.add_reaction("🎈")
 
