@@ -9,6 +9,8 @@ from disnake.ext import commands
 
 import re
 
+from discord.utils import get
+
 class Message(commands.Converter):
     def __init__(self, insert=False, local_only=False) -> None:
         self.insert = insert
@@ -386,5 +388,9 @@ JUMP_LINK_MATCHER = re.compile(r"https://(?:canary|ptb)?\.?discord(?:app)?.com/c
 async def on_message(message):
     if 'shrimp check' in message.content:
         await message.add_reaction("🦐")
+    if message.channel.id == 1037184519066894408 and re.search("\btictactic\b", message.content):
+        await message.add_reaction(get(client.get_all_emojis(), name='threethumbsup'))
+        await message.add_reaction("📊")
+        await message.add_reaction("🎈")
 
 client.run(os.environ.get('TOKEN'))
