@@ -3,9 +3,10 @@ from random import randrange
 # TODO if using Github diff deployment on HeroKu uncomment the next line
 import os
 import discord
+import time
 
 import disnake
-from disnake.ext import commands
+from disnake.ext import commands, tasks
 
 import re
 
@@ -180,6 +181,7 @@ EMBED_COLORS = [
 @client.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(client))
+    shrimp_check.start()
 
 
 # Command to check what the settings of the bot
@@ -384,13 +386,26 @@ async def send_to(destination, emoji, message, embed=None, attachment=None, **kw
 
 JUMP_LINK_MATCHER = re.compile(r"https://(?:canary|ptb)?\.?discord(?:app)?.com/channels/\d{15,20}/(\d{15,20})/(\d{15,20})")
 
+latest_shrimp_check = 0
+
 @client.event
 async def on_message(message):
     if 'shrimp check' in message.content:
         await message.add_reaction("🦐")
+        latest_shrimp_check = time.time()
     if message.channel.id == 1037184519066894408 and re.search(r"\btictactic\b", message.content):
         await message.add_reaction(get(client.emojis, name='threethumbsup'))
         await message.add_reaction("📊")
         await message.add_reaction("🎈")
+        
+@tasks.loop(minutes = 120)
+async def shrimp_check():
+    channel = discord_client.get_channel(1037194628836888646)
+    # channel = discord_client.get_channel(1037184194176106640)
+    await discord_client.wait_until_ready()
+    
+    if latest_shrimp_check == 0 or time.time() - latest_shrimp_check >= 7200:
+        print("shrimp check")
+        await channel.send(f"🦐 shrimp check 🦐")
 
 client.run(os.environ.get('TOKEN'))
