@@ -181,7 +181,7 @@ EMBED_COLORS = [
 @client.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(client))
-    shrimp_check.start()
+    # shrimp_check.start()
 
 
 # Command to check what the settings of the bot
@@ -386,7 +386,7 @@ async def send_to(destination, emoji, message, embed=None, attachment=None, **kw
 
 JUMP_LINK_MATCHER = re.compile(r"https://(?:canary|ptb)?\.?discord(?:app)?.com/channels/\d{15,20}/(\d{15,20})/(\d{15,20})")
 
-latest_shrimp_check = 0
+latest_shrimp_check = time.time()
 
 @client.event
 async def on_message(message):
@@ -398,14 +398,13 @@ async def on_message(message):
         await message.add_reaction("📊")
         await message.add_reaction("🎈")
         
-@tasks.loop(minutes = 120)
-async def shrimp_check():
-    channel = client.get_channel(1037194628836888646)
-    # channel = client.get_channel(1037184194176106640)
-    await client.wait_until_ready()
-    
-    if latest_shrimp_check == 0 or time.time() - latest_shrimp_check >= 7200:
-        print("shrimp check")
-        await channel.send(f"🦐 shrimp check 🦐")
+# @tasks.loop(minutes = 480)
+# async def shrimp_check():
+#     channel = client.get_channel(1037184194176106640)
+#     await client.wait_until_ready()
+#     
+#     if time.time() - latest_shrimp_check >= 7200:
+#         print("shrimp check")
+#         await channel.send(f"🦐 shrimp check 🦐")
 
 client.run(os.environ.get('TOKEN'))
