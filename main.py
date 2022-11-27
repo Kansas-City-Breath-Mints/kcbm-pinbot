@@ -400,9 +400,9 @@ async def on_message(message):
         
 @tasks.loop(minutes = 120)
 async def shrimp_check():
-    channel = discord_client.get_channel(1037194628836888646)
-    # channel = discord_client.get_channel(1037184194176106640)
-    await discord_client.wait_until_ready()
+    channel = client.get_channel(1037194628836888646)
+    # channel = client.get_channel(1037184194176106640)
+    await client.wait_until_ready()
     
     if latest_shrimp_check == 0 or time.time() - latest_shrimp_check >= 7200:
         print("shrimp check")
