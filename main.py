@@ -390,13 +390,15 @@ latest_shrimp_check = time.time()
 
 @client.event
 async def on_message(message):
-    if 'shrimp check' in message.content:
+    if 'shrimp check' in message.content.lower:
         await message.add_reaction("🦐")
+        global latest_shrimp_check
         latest_shrimp_check = time.time()
     if message.channel.id == 1037184519066894408 and re.search(r"\btictactic\b", message.content):
         await message.add_reaction(get(client.emojis, name='threethumbsup'))
         await message.add_reaction("📊")
         await message.add_reaction("🎈")
+    await client.process_commands(message)
         
 # @tasks.loop(minutes = 480)
 # async def shrimp_check():
