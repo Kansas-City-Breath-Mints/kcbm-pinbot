@@ -386,7 +386,7 @@ async def send_to(destination, emoji, message, embed=None, attachment=None, **kw
 
 JUMP_LINK_MATCHER = re.compile(r"https://(?:canary|ptb)?\.?discord(?:app)?.com/channels/\d{15,20}/(\d{15,20})/(\d{15,20})")
 
-latest_shrimp_check = time.time()
+latest_shrimp_check = 0
 
 @client.event
 async def on_message(message):
@@ -400,13 +400,13 @@ async def on_message(message):
         await message.add_reaction("🎈")
     await client.process_commands(message)
         
-# @tasks.loop(minutes = 480)
-# async def shrimp_check():
-#     channel = client.get_channel(1037184194176106640)
-#     await client.wait_until_ready()
-#     
-#     if time.time() - latest_shrimp_check >= 7200:
-#         print("shrimp check")
-#         await channel.send(f"🦐 shrimp check 🦐")
+@tasks.loop(minutes = 480)
+async def shrimp_check():
+    channel = client.get_channel(1037184194176106640)
+    await client.wait_until_ready()
+
+    if latest_shrimp_check == 0 or time.time() - latest_shrimp_check >= 7200:
+        print("shrimp check")
+        await channel.send(f"🦐 shrimp check 🦐")
 
 client.run(os.environ.get('TOKEN'))
