@@ -390,7 +390,7 @@ latest_shrimp_check = time.time()
 
 @client.event
 async def on_message(message):
-    if 'shrimp check' in message.content.lower:
+    if 'shrimp check' in message.content.lower():
         await message.add_reaction("🦐")
         global latest_shrimp_check
         latest_shrimp_check = time.time()
