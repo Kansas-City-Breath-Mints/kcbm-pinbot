@@ -244,26 +244,42 @@ async def on_guild_channel_pins_update(channel, last_pin):
             last_pinned = numPins[len(numPins) - 1]
             print("49th pin:", last_pinned)
             print("creating embed for", last_pinned)
-            pinEmbed = discord.Embed(
-                description="\"" + last_pinned.content + "\"",
-                colour=discord.Color.from_str("#00a456")
-            )
-            # checks to see if pinned message has attachments
-            print("checking for attachments")
+
+            attachment = None
             attachments = last_pinned.attachments
-            if len(attachments) >= 1:
-                pinEmbed.set_image(url=attachments[0].url)
-            pinEmbed.add_field(
-                name="Jump", value=last_pinned.jump_url, inline=False)
-            pinEmbed.set_footer(
-                text="sent in: " + last_pinned.channel.name + " - at: " + str(last_pinned.created_at))
-            pinEmbed.set_author(name='Sent by ' + last_pinned.author.name,
-                url=last_pinned.author.avatar_url,
-                icon_url=last_pinned.author.avatar_url)
+            if len(attachments) == 1:
+                attachment = attachments[0]
+            embed = disnake.Embed(colour=disnake.Color(0x00a456),
+                                    timestamp=last_pinned.created_at)
+            if last_pinned.content is None or last_pinned.content == "":
+                if attachment is not None:
+                    url = attachment.url
+                    if attachment.content_type != None and "image" in attachment.content_type:
+                        embed.set_image(url=url)
+                    else:
+                        embed.add_field(name="attachment_link", value=url)
+            else:
+                description = last_pinned.content
+                embed = disnake.Embed(colour=disnake.Color(0x00a456), description=description,
+                                        timestamp=last_pinned.created_at)
+                embed.add_field(name="​",
+                                value=f"[Jump to message]({last_pinned.jump_url})")
+                if attachment is not None:
+                    url = attachment.url
+                    if attachment.content_type != None and "image" in attachment.content_type:
+                        embed.set_image(url=url)
+                    else:
+                        embed.add_field(name="attachment_link", value=url)
+            user = last_pinned.author
+            embed.set_author(name=user.name, icon_url=user.display_avatar.url)
+            embed.set_footer(
+                text=f"Pinned in {last_pinned.channel.name}"
+            )
+
             print("pin embed created")
-            print(pinEmbed.description)
+            print(embed.description)
             print("attempting to send pin to pin archive")
-            await last_pinned.guild.get_channel(int(pins_channel)).send(embed=pinEmbed)
+            await last_pinned.guild.get_channel(int(pins_channel)).send(embed=embed)
 
             # remove this message if you do not want the bot to send a message when you pin a message
             print("attempting to send pin archive message")
