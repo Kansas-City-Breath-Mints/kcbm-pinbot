@@ -211,39 +211,42 @@ async def pins(ctx):
 # The method that takes care of pin updates in a server
 @client.event
 async def on_guild_channel_pins_update(channel, last_pin):
+    print("the pins have updated in", channel.name)
     global data
     try:
-        randomColor = randrange(len(EMBED_COLORS))
         numPins = await channel.pins()
-        print("channel has", len(numPins), "pins")
+        print(channel.name, "has", len(numPins), "pins")
 
-        # checks to see if message is in the blacklist
-        # message is only sent if there is a blacklisted server with 50 messages pinned, informs them
-        # that passel is in the server and they can un-blacklist the channel to have passel work
         if str(channel.id) in blacklisted_channels:
             print('blacklisted channel', str(channel.id))
             return
 
         isChannelThere = False
-        # checks to see if pins channel exists in the server
+
         channnelList = channel.guild.channels
         for channel in channnelList:
             if int(pins_channel) == int(channel.id):
                 isChannelThere = True
 
-        # checks to see if pins channel exists or has been deleted
         if not isChannelThere:
-            await channel.send("Check to see if the pins archive channel during setup has been deleted")
+            print("pin archive not found")
             return
 
-        # only happens if send all is toggled on
-        if len(numPins) < 49 and sendall == 1:
-            last_pinned = numPins[0]
+        print("found pin archive")
+
+        last_pinned = numPins[0]
+        print("last pinned:", last_pinned)
+        if len(numPins) == 50:
+            print("there are 50 pins, let's handle that")
+            last_pinned = numPins[len(numPins) - 1]
+            print("49th pin:", last_pinned)
+            print("creating embed for", last_pinned)
             pinEmbed = discord.Embed(
                 description="\"" + last_pinned.content + "\"",
-                colour=EMBED_COLORS[randomColor]
+                colour=last_pinned.author.color
             )
             # checks to see if pinned message has attachments
+            print("checking for attachments")
             attachments = last_pinned.attachments
             if len(attachments) >= 1:
                 pinEmbed.set_image(url=attachments[0].url)
@@ -251,77 +254,20 @@ async def on_guild_channel_pins_update(channel, last_pin):
                 name="Jump", value=last_pinned.jump_url, inline=False)
             pinEmbed.set_footer(
                 text="sent in: " + last_pinned.channel.name + " - at: " + str(last_pinned.created_at))
-            pinEmbed.set_author(name='Sent by ' + last_pinned.author.name)
-            await channel.guild.get_channel(int(pins_channel)).send(embed=pinEmbed)
-            
+            pinEmbed.set_author(name='Sent by ' + last_pinned.author.name,
+                url=last_pinned.author.avatar_url,
+                icon_url=last_pinned.author.avatar_url)
+            print("pin embed created")
+            print(pinEmbed.description)
+            print("attempting to send pin to pin archive")
+            await last_pinned.guild.get_channel(int(pins_channel)).send(embed=pinEmbed)
+
             # remove this message if you do not want the bot to send a message when you pin a message
+            print("attempting to send pin archive message")
             await last_pinned.channel.send(
-                "See pinned message in " + channel.guild.get_channel(int(pins_channel)).mention)
-            return
-
-        # if guild mode is one does the process following mode 1
-        if mode == 1:
-            last_pinned = numPins[len(numPins) - 1]
-            # sends extra messages
-            if len(numPins) == 50:
-                last_pinned = numPins[0]
-                pinEmbed = discord.Embed(
-                    # title="Sent by " + last_pinned.author.name,
-                    description="\"" + last_pinned.content + "\"",
-                    colour=EMBED_COLORS[randomColor]
-                )
-                # checks to see if pinned message has attachments
-                attachments = last_pinned.attachments
-                if len(attachments) >= 1:
-                    pinEmbed.set_image(url=attachments[0].url)
-                pinEmbed.add_field(
-                    name="Jump", value=last_pinned.jump_url, inline=False)
-                pinEmbed.set_footer(
-                    text="sent in: " + last_pinned.channel.name + " - at: " + str(last_pinned.created_at))
-                pinEmbed.set_author(name='Sent by ' + last_pinned.author.name)
-                await channel.guild.get_channel(int(pins_channel)).send(embed=pinEmbed)
-
-                # remove this message if you do not want the bot to send a message when you pin a message
-                await last_pinned.channel.send(
-                    "See pinned message in " + channel.guild.get_channel(int(pins_channel)).mention)
-                await last_pinned.unpin()
-
-        # if guild mode is two follows the process for mode 2
-        if mode == 2:
-            print("entering mode 2")
-            last_pinned = numPins[0]
-            print(last_pinned)
-            if len(numPins) == 50:
-                print("there are 50 pins")
-                last_pinned = numPins[len(numPins) - 1]
-                print(last_pinned)
-                print("creating embed")
-                pinEmbed = discord.Embed(
-                    # title="Sent by " + last_pinned.author.name,
-                    description="\"" + last_pinned.content + "\"",
-                    colour=last_pinned.author.color
-                )
-                # checks to see if pinned message has attachments
-                print("checking for attachments")
-                attachments = last_pinned.attachments
-                if len(attachments) >= 1:
-                    pinEmbed.set_image(url=attachments[0].url)
-                pinEmbed.add_field(
-                    name="Jump", value=last_pinned.jump_url, inline=False)
-                pinEmbed.set_footer(
-                    text="sent in: " + last_pinned.channel.name + " - at: " + str(last_pinned.created_at))
-                pinEmbed.set_author(name='Sent by ' + last_pinned.author.name,
-                    url=last_pinned.author.avatar_url,
-                    icon_url=last_pinned.author.avatar_url)
-                print("attempting to send pin to pin archive")
-                await last_pinned.guild.get_channel(int(pins_channel)).send(embed=pinEmbed)
-
-                # remove this message if you do not want the bot to send a message when you pin a message
-                print("attempting to send pin archive message")
-                await last_pinned.channel.send(
-                    "See oldest pinned message in " + channel.guild.get_channel(int(pins_channel)).mention)
-                print("attempting to unpin old message")
-                await last_pinned.unpin()
+                "See oldest pinned message in " + channel.guild.get_channel(int(pins_channel)).mention)
+            print("attempting to unpin old message")
+            await last_pinned.unpin()
     except:
         print("unpinned a message, not useful for bot so does nothing")
 
