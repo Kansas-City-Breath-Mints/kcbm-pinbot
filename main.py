@@ -246,7 +246,7 @@ async def on_guild_channel_pins_update(channel, last_pin):
             print("creating embed for", last_pinned)
             pinEmbed = discord.Embed(
                 description="\"" + last_pinned.content + "\"",
-                colour=last_pinned.author.color
+                colour=discord.Color("#00a456")
             )
             # checks to see if pinned message has attachments
             print("checking for attachments")
@@ -290,7 +290,7 @@ async def quote(ctx: commands.Context, *, message: Message):
             attachments = message.attachments
             if len(attachments) == 1:
                 attachment = attachments[0]
-            embed = disnake.Embed(colour=disnake.Color(0xd5fff),
+            embed = disnake.Embed(colour=disnake.Color(0x00a456),
                                     timestamp=message.created_at)
             if message.content is None or message.content == "":
                 if attachment is not None:
@@ -301,7 +301,7 @@ async def quote(ctx: commands.Context, *, message: Message):
                         embed.add_field(name="attachment_link", value=url)
             else:
                 description = message.content
-                embed = disnake.Embed(colour=disnake.Color(0xd5fff), description=description,
+                embed = disnake.Embed(colour=disnake.Color(0x00a456), description=description,
                                         timestamp=message.created_at)
                 embed.add_field(name="​",
                                 value=f"[Jump to message]({message.jump_url})")
