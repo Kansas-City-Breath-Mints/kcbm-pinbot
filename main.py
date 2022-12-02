@@ -215,11 +215,13 @@ async def on_guild_channel_pins_update(channel, last_pin):
     try:
         randomColor = randrange(len(EMBED_COLORS))
         numPins = await channel.pins()
+        print("channel has", len(numPins), "pins")
 
         # checks to see if message is in the blacklist
         # message is only sent if there is a blacklisted server with 50 messages pinned, informs them
         # that passel is in the server and they can un-blacklist the channel to have passel work
         if str(channel.id) in blacklisted_channels:
+            print('blacklisted channel', str(channel.id))
             return
 
         isChannelThere = False
@@ -286,15 +288,21 @@ async def on_guild_channel_pins_update(channel, last_pin):
 
         # if guild mode is two follows the process for mode 2
         if mode == 2:
+            print("entering mode 2")
             last_pinned = numPins[0]
+            print(last_pinned)
             if len(numPins) == 50:
+                print("there are 50 pins")
                 last_pinned = numPins[len(numPins) - 1]
+                print(last_pinned)
+                print("creating embed")
                 pinEmbed = discord.Embed(
                     # title="Sent by " + last_pinned.author.name,
                     description="\"" + last_pinned.content + "\"",
                     colour=last_pinned.author.color
                 )
                 # checks to see if pinned message has attachments
+                print("checking for attachments")
                 attachments = last_pinned.attachments
                 if len(attachments) >= 1:
                     pinEmbed.set_image(url=attachments[0].url)
@@ -305,11 +313,14 @@ async def on_guild_channel_pins_update(channel, last_pin):
                 pinEmbed.set_author(name='Sent by ' + last_pinned.author.name,
                     url=last_pinned.author.avatar_url,
                     icon_url=last_pinned.author.avatar_url)
+                print("attempting to send pin to pin archive")
                 await last_pinned.guild.get_channel(int(pins_channel)).send(embed=pinEmbed)
 
                 # remove this message if you do not want the bot to send a message when you pin a message
+                print("attempting to send pin archive message")
                 await last_pinned.channel.send(
                     "See oldest pinned message in " + channel.guild.get_channel(int(pins_channel)).mention)
+                print("attempting to unpin old message")
                 await last_pinned.unpin()
     except:
         print("unpinned a message, not useful for bot so does nothing")
@@ -409,6 +420,6 @@ async def shrimp_check():
 
     if latest_shrimp_check == 0 or time.time() - latest_shrimp_check >= 7200:
         print("shrimp check")
-#        await channel.send(f"🦐 shrimp check 🦐")
+        await channel.send(f"🦐 shrimp check 🦐")
 
 client.run(os.environ.get('TOKEN'))
