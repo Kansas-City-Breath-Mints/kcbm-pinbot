@@ -268,7 +268,8 @@ async def on_guild_channel_pins_update(channel, last_pin):
                 "See oldest pinned message in " + channel.guild.get_channel(int(pins_channel)).mention)
             print("attempting to unpin old message")
             await last_pinned.unpin()
-    except:
+    except Exception as e:
+        print(e)
         print("unpinned a message, not useful for bot so does nothing")
 
 @client.command(name='quote')
