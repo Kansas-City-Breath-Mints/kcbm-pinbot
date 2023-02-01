@@ -262,8 +262,6 @@ async def on_guild_channel_pins_update(channel, last_pin):
                 description = last_pinned.content
                 embed = disnake.Embed(colour=disnake.Color(0x00a456), description=description,
                                         timestamp=last_pinned.created_at)
-                embed.add_field(name="​",
-                                value=f"[Jump to message]({last_pinned.jump_url})")
                 if attachment is not None:
                     url = attachment.url
                     if attachment.content_type != None and "image" in attachment.content_type:
@@ -271,6 +269,8 @@ async def on_guild_channel_pins_update(channel, last_pin):
                     else:
                         embed.add_field(name="attachment_link", value=url)
             user = last_pinned.author
+            embed.add_field(name="​",
+                                value=f"[Jump to message]({last_pinned.jump_url})")
             embed.set_author(name=user.name, icon_url=user.display_avatar.url)
             embed.set_footer(
                 text=f"Pinned in {last_pinned.channel.name}"
