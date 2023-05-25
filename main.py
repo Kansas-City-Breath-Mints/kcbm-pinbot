@@ -377,15 +377,15 @@ async def on_message(message):
         await message.add_reaction("🎈")
     await client.process_commands(message)
         
-@tasks.loop(minutes = 480)
-async def shrimp_check():
-    channel = client.get_channel(1037184194176106640)
-    await client.wait_until_ready()
-
-    global latest_shrimp_check
-
-    if latest_shrimp_check == 0 or time.time() - latest_shrimp_check >= 7200:
-        print("shrimp check")
-        await channel.send(f"🦐 shrimp check 🦐")
+# @tasks.loop(minutes = 480)
+# async def shrimp_check():
+#     channel = client.get_channel(1037184194176106640)
+#     await client.wait_until_ready()
+# 
+#     global latest_shrimp_check
+# 
+#     if latest_shrimp_check == 0 or time.time() - latest_shrimp_check >= 7200:
+#         print("shrimp check")
+#         await channel.send(f"🦐 shrimp check 🦐")
 
 client.run(os.environ.get('TOKEN'))
