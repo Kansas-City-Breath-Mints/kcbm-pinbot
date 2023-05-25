@@ -184,7 +184,7 @@ EMBED_COLORS = [
 @client.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(client))
-    shrimp_check.start()
+    # shrimp_check.start()
 
 
 # Command to check what the settings of the bot
